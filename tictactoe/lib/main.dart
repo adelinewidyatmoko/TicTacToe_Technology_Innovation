@@ -23,70 +23,182 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> {
-  var boxStates = List<int>.generate(9, (i) => 0);
+  var boxStates = List<int>.generate(9, (i) => -1);
   var gridCellKeys = List.generate(9, (_) => GlobalKey<_ShakingCellState>());
   int turn = 0;
+
+  var playerStrings = ["O", "X"];
 
   List<int> activeIndeces = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: GridView.builder(
-        itemCount: 9,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-        ),
-        itemBuilder: (BuildContext context, int index) {
-          return GestureDetector(
-            onTap: () {
-              if (activeIndeces.contains(index)) {
-                gridCellKeys[index].currentState?._shake();
-                return;
-              }
-
-              _update(index);
-            },
-            child: ShakingCell(
-              key: gridCellKeys[index],
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                ),
-                child: Center(
-                  child: Text(
-                    boxStates[index] == 0
-                        ? ""
-                        : boxStates[index] == 1
-                        ? "O"
-                        : "X",
-                    style: TextStyle(fontSize: 60),
-                  ),
-                ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: Text(
+                "Turn: " + playerStrings[turn],
+                style: TextStyle(fontSize: 35),
               ),
             ),
-          );
-        },
+          ),
+          Expanded(
+            flex: 4,
+            child: GridView.builder(
+              itemCount: 9,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+              ),
+              itemBuilder: (BuildContext context, int index) {
+                return GestureDetector(
+                  onTap: () {
+                    _update(index, boxStates);
+                  },
+                  child: ShakingCell(
+                    key: gridCellKeys[index],
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                      ),
+                      child: Center(
+                        child: Text(
+                          boxStates[index] == -1
+                              ? ""
+                              : playerStrings[boxStates[index]],
+                          style: TextStyle(fontSize: 60),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  void _update(int index) {
+  int _checkLine(
+    int position,
+    bool isRow,
+    int lineLength,
+    List<int> boxStates,
+  ) {
+    int currPosition = isRow ? position * lineLength : position;
+    int player = -1;
+    String debugCheck = "";
+
+    print("Checking " + (isRow ? "row " : "column ") + position.toString());
+
+    for (int i = 0; i < lineLength; i++) {
+      int currentBoxPlayer = boxStates[currPosition];
+      if (currentBoxPlayer == -1) {
+        print(currPosition.toString() + " null");
+
+        return -1;
+      } else if (player == -1) {
+        print(currPosition.toString() + " good");
+        player = currentBoxPlayer;
+      } else if (player != currentBoxPlayer) {
+        print(
+          currPosition.toString() +
+              " clash " +
+              player.toString() +
+              "/" +
+              currentBoxPlayer.toString(),
+        );
+        return -1;
+      }
+
+      currPosition += isRow ? 1 : lineLength;
+    }
+    return player;
+  }
+
+  int _checkDiagonal(bool positiveSlope, int lineLength, List<int> boxStates) {
+    int currPosition = positiveSlope ? lineLength * lineLength - lineLength : 0;
+    int player = -1;
+    String debugCheck = "";
+
+    print(
+      "Checking " + (positiveSlope ? "positive " : "negative ") + "diagonal",
+    );
+
+    for (int i = 0; i < lineLength; i++) {
+      int currentBoxPlayer = boxStates[currPosition];
+      if (currentBoxPlayer == -1) {
+        print(currPosition.toString() + " null");
+
+        return -1;
+      } else if (player == -1) {
+        print(currPosition.toString() + " good");
+        player = currentBoxPlayer;
+      } else if (player != currentBoxPlayer) {
+        print(
+          currPosition.toString() +
+              " clash " +
+              player.toString() +
+              "/" +
+              currentBoxPlayer.toString(),
+        );
+        return -1;
+      }
+
+      currPosition += positiveSlope ? (-lineLength + 1) : (lineLength + 1);
+    }
+
+    return player;
+  }
+
+  void _update(int index, List<int> boxStates) {
+    if (activeIndeces.contains(index)) {
+      gridCellKeys[index].currentState?._shake();
+      return;
+    }
+
     setState(() {
       if (turn == 0) {
-        boxStates[index] = 1;
+        boxStates[index] = 0;
         turn = 1;
       } else if (turn == 1) {
-        boxStates[index] = 2;
+        boxStates[index] = 1;
         turn = 0;
       }
 
       if (activeIndeces.length >= 6) {
-        boxStates[activeIndeces.removeAt(0)] = 0;
+        boxStates[activeIndeces.removeAt(0)] = -1;
       }
       activeIndeces.add(index);
-      print(activeIndeces);
+
+      int lineLength = 3;
+      for (int i = 0; i < lineLength; i++) {
+        int columnCheck = _checkLine(i, false, lineLength, boxStates);
+        int rowCheck = _checkLine(i, true, lineLength, boxStates);
+
+        if (columnCheck != -1) {
+          print(
+            "Winner: " + columnCheck.toString() + " on column " + i.toString(),
+          );
+          return;
+        } else if (rowCheck != -1) {
+          print("Winner: " + rowCheck.toString() + " on row " + i.toString());
+          return;
+        }
+      }
+
+      int negDiag = _checkDiagonal(false, lineLength, boxStates);
+      int posDiag = _checkDiagonal(true, lineLength, boxStates);
+
+      if (negDiag != -1) {
+        print("Winner: " + negDiag.toString() + " on negative diagonal");
+        return;
+      } else if (posDiag != -1) {
+        print("Winner: " + posDiag.toString() + " on positive diagonal");
+        return;
+      }
     });
   }
 }
@@ -112,7 +224,6 @@ class _ShakingCellState extends State<ShakingCell> {
       tween: Tween(begin: 1, end: 0),
       duration: Duration(milliseconds: 300),
       builder: (context, value, child) {
-        print(value);
         return Transform.translate(
           offset: Offset(
             value * 40 * dx * (value > 0.5 ? -1 : 1),
