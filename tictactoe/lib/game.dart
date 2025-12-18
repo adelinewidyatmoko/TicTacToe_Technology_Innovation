@@ -1,11 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:tictactoe/home_page.dart';
 
 class GamePage extends StatefulWidget {
   final int gridLength;
   final List<String> playerStrings;
   final int? maxPieces;
+  final int playingAs = 0;
   const GamePage({
     super.key,
     required this.gridLength,
@@ -16,7 +18,7 @@ class GamePage extends StatefulWidget {
   @override
   State<GamePage> createState() =>
       // ignore: no_logic_in_create_state
-      _GamePageState(gridLength, playerStrings, maxPieces);
+      _GamePageState(gridLength, playerStrings, playingAs, maxPieces);
 }
 
 class _GamePageState extends State<GamePage> {
@@ -25,6 +27,7 @@ class _GamePageState extends State<GamePage> {
 
   late final int maxPieces;
   late final int gridSize;
+  late final int playingAs;
   late var boxStates = List<int>.generate(gridSize, (i) => -1);
   late var gridCellKeys = List.generate(
     gridSize,
@@ -32,7 +35,12 @@ class _GamePageState extends State<GamePage> {
   );
   int turn = 0;
 
-  _GamePageState(this.squareLength, this.playerStrings, int? maxPieces) {
+  _GamePageState(
+    this.squareLength,
+    this.playerStrings,
+    this.playingAs,
+    int? maxPieces,
+  ) {
     gridSize = squareLength * squareLength;
     this.maxPieces = min(
       max(0, (maxPieces ?? (gridSize - squareLength))),
@@ -49,6 +57,11 @@ class _GamePageState extends State<GamePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Tic Tac Toe"),
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -73,46 +86,68 @@ class _GamePageState extends State<GamePage> {
             ),
             Expanded(
               flex: 8,
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: GridView.builder(
-                  itemCount: gridSize,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: squareLength,
-                  ),
-                  itemBuilder: (BuildContext context, int index) {
-                    return GestureDetector(
-                      onTap: () {
-                        _update(index);
-                      },
-                      child: GameCell(
-                        key: gridCellKeys[index],
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black),
-                          ),
-                          child: Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                boxStates[index] == -1
-                                    ? ""
-                                    : playerStrings[boxStates[index]],
-                                style: TextStyle(fontSize: 100),
+              child: Column(
+                children: [
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: GridView.builder(
+                      itemCount: gridSize,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: squareLength,
+                      ),
+                      itemBuilder: (BuildContext context, int index) {
+                        return GestureDetector(
+                          onTap: () {
+                            _update(index, false);
+                          },
+                          child: GameCell(
+                            key: gridCellKeys[index],
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.black),
+                              ),
+                              child: Center(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    boxStates[index] == -1
+                                        ? ""
+                                        : playerStrings[boxStates[index]],
+                                    style: TextStyle(fontSize: 100),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                        );
+                      },
+                    ),
+                  ),
+                  Center(
+                    child: Text(
+                      !ended
+                          ? turn == playingAs
+                                ? "Your turn"
+                                : "Waiting..."
+                          : "",
+                      style: TextStyle(fontSize: 35),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
               flex: 1,
               child: Center(
                 child: Text(bottomText, style: TextStyle(fontSize: 35)),
+              ),
+            ),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Return'),
               ),
             ),
           ],
@@ -195,8 +230,38 @@ class _GamePageState extends State<GamePage> {
     ended = true;
   }
 
-  void _update(int index) {
-    if (activeIndeces.contains(index) || ended) {
+  void botTurn() async {
+    var rng = Random();
+    await Future.delayed(Duration(milliseconds: (500 + rng.nextInt(1000))));
+    _update(basicAI(), true);
+  }
+
+  int basicAI() {
+    var rng = Random();
+
+    int steps = rng.nextInt(gridSize - activeIndeces.length);
+
+    if (steps == -1) {
+      return -1;
+    }
+
+    int currentPosition = 0;
+
+    print("------ $steps");
+    while (true) {
+      print("$steps  $currentPosition ${(steps == 0) ? "yes " : "no "}");
+      if (steps == 0 && !activeIndeces.contains(currentPosition)) {
+        return currentPosition;
+      } else if (!activeIndeces.contains(currentPosition)) {
+        steps--;
+      }
+      currentPosition++;
+    }
+  }
+
+  void _update(int index, bool botOverride) {
+    if ((activeIndeces.contains(index) || turn != playingAs || ended) &&
+        !botOverride) {
       gridCellKeys[index].currentState?._shake();
       return;
     }
@@ -220,7 +285,14 @@ class _GamePageState extends State<GamePage> {
           gridCellKeys[winCheck.winningTiles[i]].currentState?._makeGreen();
         }
 
-        bottomText = "Winner: ${playerStrings[winCheck.winningPlayer]}";
+        bottomText = winCheck.winningPlayer == playingAs
+            ? "You Win!"
+            : "You Lost!";
+      }
+
+      // bot's turn
+      if (turn != playingAs && !ended) {
+        botTurn();
       }
     });
   }
@@ -244,6 +316,7 @@ class GameCell extends StatefulWidget {
 
 class _GameCellState extends State<GameCell> {
   int t = 0;
+  int flash = 0;
   final rng = Random();
   double dx = 0, dy = 0;
 
@@ -253,25 +326,33 @@ class _GameCellState extends State<GameCell> {
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       key: ValueKey(t),
-      tween: Tween(begin: 1, end: 0),
-      duration: Duration(milliseconds: 300),
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 300),
       builder: (context, value, child) {
+        var triangle = 1 - (2 * value - 1).abs();
+
+        final animatedColor = Color.lerp(
+          backgroundColor,
+          Colors.red,
+          triangle * flash,
+        );
+
         return Transform.translate(
           offset: Offset(
-            value * 40 * dx * (value > 0.5 ? -1 : 1),
-            value * 40 * dy * (value > 0.5 ? -1 : 1),
+            triangle * 40 * dx * (triangle > 0.5 ? -1 : 1),
+            triangle * 40 * dy * (triangle > 0.5 ? -1 : 1),
           ),
-          child: child,
+          child: Container(color: animatedColor, child: child),
         );
       },
-
-      child: Container(color: backgroundColor, child: widget.child),
+      child: widget.child,
     );
   }
 
   void _shake() {
     dx = rng.nextDouble() - 0.5;
     dy = rng.nextDouble() - 0.5;
+    flash = 1;
     setState(() => t = t + 1);
   }
 

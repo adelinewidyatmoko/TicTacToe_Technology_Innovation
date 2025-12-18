@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:tictactoe/home_page.dart';
 import 'login_page.dart';
 
 import 'game.dart';
@@ -16,7 +17,7 @@ class AuthGate extends StatelessWidget {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         if (snap.data == null) return const LoginPage();
-        return const GamePage(gridLength: 3,playerStrings: ["O", "X"]);
+        return const HomePage();
       },
     );
   }
