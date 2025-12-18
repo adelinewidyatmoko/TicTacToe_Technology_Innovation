@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 
-// ✅ change this import to wherever your GamePage widget is
 import 'game.dart';
 
 class AuthGate extends StatelessWidget {
@@ -17,7 +16,7 @@ class AuthGate extends StatelessWidget {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         if (snap.data == null) return const LoginPage();
-        return const GamePage(); // ✅ must match your game widget name
+        return const GamePage(gridLength: 3,playerStrings: ["O", "X"]);
       },
     );
   }
