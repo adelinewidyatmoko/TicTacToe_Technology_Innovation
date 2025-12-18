@@ -49,68 +49,74 @@ class _GamePageState extends State<GamePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Turn: ${playerStrings[turn]}",
-                    style: TextStyle(fontSize: 35),
-                  ),
-                  Text(
-                    "Pieces left: ${maxPieces - activeIndeces.length}",
-                    style: TextStyle(fontSize: 35),
-                  ),
-                ],
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Turn: ${playerStrings[turn]}",
+                      style: TextStyle(fontSize: 35),
+                    ),
+                    Text(
+                      "Pieces left: ${maxPieces - activeIndeces.length}",
+                      style: TextStyle(fontSize: 35),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Expanded(
-            flex: 8,
-            child: GridView.builder(
-              itemCount: gridSize,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: squareLength,
-              ),
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {
-                    _update(index);
-                  },
-                  child: GameCell(
-                    key: gridCellKeys[index],
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                      ),
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            boxStates[index] == -1
-                                ? ""
-                                : playerStrings[boxStates[index]],
-                            style: TextStyle(fontSize: 100),
+            Expanded(
+              flex: 8,
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: GridView.builder(
+                  itemCount: gridSize,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: squareLength,
+                  ),
+                  itemBuilder: (BuildContext context, int index) {
+                    return GestureDetector(
+                      onTap: () {
+                        _update(index);
+                      },
+                      child: GameCell(
+                        key: gridCellKeys[index],
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black),
+                          ),
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                boxStates[index] == -1
+                                    ? ""
+                                    : playerStrings[boxStates[index]],
+                                style: TextStyle(fontSize: 100),
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: Text(bottomText, style: TextStyle(fontSize: 35)),
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: Text(bottomText, style: TextStyle(fontSize: 35)),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
