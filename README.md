@@ -1,3 +1,7 @@
+# Credits
+Evan Danendra Pratama - 5026231051
+Maria Adeline Maharani Widyatmoko - 5026231048
+
 # TicTacToe
 Interactive TicTacToe game made using Flutter and Firebase.
 Technology Innovation course final project in Information Systems major.
