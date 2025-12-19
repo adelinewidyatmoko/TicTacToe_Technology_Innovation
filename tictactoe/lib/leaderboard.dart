@@ -26,10 +26,11 @@ class LeaderboardPage extends StatelessWidget {
           return ListView.builder(
             itemCount: docs.length,
             itemBuilder: (context, index) {
-              final data = docs[index].data()! as Map<String, dynamic>;
+              final doc = docs[index];
+              final data = doc.data()! as Map<String, dynamic>;
               return ListTile(
                 leading: Text('#${index + 1}'),
-                title: Text(data['name'] ?? 'Player'),
+                title: Text(doc.id),
                 trailing: Text('${data['score'] ?? 0}'),
               );
             },
