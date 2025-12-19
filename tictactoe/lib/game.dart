@@ -1,24 +1,37 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:tictactoe/home_page.dart';
 
 class GamePage extends StatefulWidget {
   final int gridLength;
   final List<String> playerStrings;
   final int? maxPieces;
   final int playingAs = 0;
+  final bool? displayEarliestPiece;
+  final bool? blind;
+  final int? stepsPerTurn;
   const GamePage({
     super.key,
     required this.gridLength,
     required this.playerStrings,
     this.maxPieces,
+    this.displayEarliestPiece,
+    this.blind,
+    this.stepsPerTurn,
   });
 
   @override
   State<GamePage> createState() =>
       // ignore: no_logic_in_create_state
-      _GamePageState(gridLength, playerStrings, playingAs, maxPieces);
+      _GamePageState(
+        gridLength,
+        playerStrings,
+        playingAs,
+        maxPieces,
+        displayEarliestPiece,
+        blind,
+        stepsPerTurn,
+      );
 }
 
 class _GamePageState extends State<GamePage> {
@@ -33,27 +46,43 @@ class _GamePageState extends State<GamePage> {
     gridSize,
     (_) => GlobalKey<_GameCellState>(),
   );
+
   int turn = 0;
+  bool ended = false;
+  List<int> activeIndeces = [];
+  String bottomText = "";
+  bool displayEarliestPiece = false;
+  bool blind = false;
+  int stepsPerTurn = 1;
+  int _currentStep = 0;
 
   _GamePageState(
     this.squareLength,
     this.playerStrings,
     this.playingAs,
     int? maxPieces,
+    bool? displayEarliestPiece,
+    bool? blind,
+    int? stepsPerTurn,
   ) {
     gridSize = squareLength * squareLength;
     this.maxPieces = min(
       max(0, (maxPieces ?? (gridSize - squareLength))),
       gridSize,
     );
+
+    if (displayEarliestPiece != null) {
+      this.displayEarliestPiece = displayEarliestPiece;
+    }
+
+    if (blind != null) {
+      this.blind = blind;
+    }
+
+    if (stepsPerTurn != null) {
+      this.stepsPerTurn = stepsPerTurn;
+    }
   }
-
-  bool ended = false;
-
-  List<int> activeIndeces = [];
-
-  String bottomText = "";
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +106,7 @@ class _GamePageState extends State<GamePage> {
                       style: TextStyle(fontSize: 35),
                     ),
                     Text(
-                      "Pieces left: ${maxPieces - activeIndeces.length}",
+                      "Pieces left: ${piecesLeft()}",
                       style: TextStyle(fontSize: 35),
                     ),
                   ],
@@ -112,8 +141,19 @@ class _GamePageState extends State<GamePage> {
                                   child: Text(
                                     boxStates[index] == -1
                                         ? ""
-                                        : playerStrings[boxStates[index]],
-                                    style: TextStyle(fontSize: 100),
+                                        : (blind & !ended
+                                              ? "#"
+                                              : playerStrings[boxStates[index]]),
+                                    style: TextStyle(
+                                      fontSize: 100,
+                                      color:
+                                          !displayEarliestPiece &&
+                                              activeIndeces.isNotEmpty &&
+                                              activeIndeces[0] == index &&
+                                              piecesLeft() <= 0
+                                          ? Colors.grey
+                                          : Colors.black,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -240,16 +280,9 @@ class _GamePageState extends State<GamePage> {
     var rng = Random();
 
     int steps = rng.nextInt(gridSize - activeIndeces.length);
-
-    if (steps == -1) {
-      return -1;
-    }
-
     int currentPosition = 0;
 
-    print("------ $steps");
     while (true) {
-      print("$steps  $currentPosition ${(steps == 0) ? "yes " : "no "}");
       if (steps == 0 && !activeIndeces.contains(currentPosition)) {
         return currentPosition;
       } else if (!activeIndeces.contains(currentPosition)) {
@@ -257,6 +290,10 @@ class _GamePageState extends State<GamePage> {
       }
       currentPosition++;
     }
+  }
+
+  int piecesLeft() {
+    return maxPieces - activeIndeces.length;
   }
 
   void _update(int index, bool botOverride) {
@@ -268,10 +305,15 @@ class _GamePageState extends State<GamePage> {
 
     setState(() {
       boxStates[index] = turn;
-      turn++;
+      _currentStep++;
+
+      if (_currentStep >= stepsPerTurn) {
+        turn++;
+        _currentStep = 0;
+      }
       turn %= playerStrings.length;
 
-      if (activeIndeces.length >= maxPieces) {
+      if (piecesLeft() <= 0) {
         boxStates[activeIndeces.removeAt(0)] = -1;
       }
       activeIndeces.add(index);
@@ -339,8 +381,8 @@ class _GameCellState extends State<GameCell> {
 
         return Transform.translate(
           offset: Offset(
-            triangle * 40 * dx * (triangle > 0.5 ? -1 : 1),
-            triangle * 40 * dy * (triangle > 0.5 ? -1 : 1),
+            triangle * 40 * dx * triangle,
+            triangle * 40 * dy * triangle,
           ),
           child: Container(color: animatedColor, child: child),
         );

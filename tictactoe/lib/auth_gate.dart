@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:tictactoe/home_page.dart';
 import 'login_page.dart';
 
-import 'game.dart';
-
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -14,7 +12,9 @@ class AuthGate extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         if (snap.data == null) return const LoginPage();
         return const HomePage();

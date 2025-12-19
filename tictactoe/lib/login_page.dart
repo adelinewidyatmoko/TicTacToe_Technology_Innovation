@@ -16,7 +16,10 @@ class _LoginPageState extends State<LoginPage> {
   String _err = "";
 
   Future<void> _submit() async {
-    setState(() { _loading = true; _err = ""; });
+    setState(() {
+      _loading = true;
+      _err = "";
+    });
     try {
       final auth = FirebaseAuth.instance;
       if (_isLogin) {
@@ -52,21 +55,39 @@ class _LoginPageState extends State<LoginPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(controller: _email, decoration: const InputDecoration(labelText: "Email")),
-            TextField(controller: _pass, decoration: const InputDecoration(labelText: "Password"), obscureText: true),
+            TextField(
+              controller: _email,
+              decoration: const InputDecoration(labelText: "Email"),
+            ),
+            TextField(
+              controller: _pass,
+              decoration: const InputDecoration(labelText: "Password"),
+              obscureText: true,
+            ),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: _loading ? null : _submit,
-              child: Text(_loading ? "Please wait..." : (_isLogin ? "Login" : "Create account")),
+              child: Text(
+                _loading
+                    ? "Please wait..."
+                    : (_isLogin ? "Login" : "Create account"),
+              ),
             ),
             TextButton(
-              onPressed: _loading ? null : () => setState(() => _isLogin = !_isLogin),
-              child: Text(_isLogin ? "Need an account? Register" : "Have an account? Login"),
+              onPressed: _loading
+                  ? null
+                  : () => setState(() => _isLogin = !_isLogin),
+              child: Text(
+                _isLogin
+                    ? "Need an account? Register"
+                    : "Have an account? Login",
+              ),
             ),
-            if (_err.isNotEmpty) Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(_err, style: const TextStyle(color: Colors.red)),
-            ),
+            if (_err.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(_err, style: const TextStyle(color: Colors.red)),
+              ),
           ],
         ),
       ),
