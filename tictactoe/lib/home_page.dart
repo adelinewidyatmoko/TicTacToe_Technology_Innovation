@@ -4,14 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:tictactoe/auth_gate.dart';
 import 'package:tictactoe/gamemodes.dart';
 import 'package:tictactoe/leaderboard.dart';
+import 'package:tictactoe/utils/user_utils.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
       appBar: AppBar(title: const Text("Home"), centerTitle: true),
       body: Padding(
@@ -28,7 +27,7 @@ class HomePage extends StatelessWidget {
                     style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    'Welcome ${user?.email ?? "Guest"}',
+                    'Welcome ${getCurrentUserEmail() ?? "Guest"}',
                     style: const TextStyle(fontSize: 18),
                   ),
                 ],

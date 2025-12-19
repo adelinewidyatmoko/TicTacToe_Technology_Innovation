@@ -27,6 +27,7 @@ class Gamemodes extends StatelessWidget {
                           builder: (context) => const GamePage(
                             gridLength: 3,
                             playerStrings: ["X", "O"],
+                            gameReward: 100,
                             displayEarliestPiece: false,
                           ),
                         ),
@@ -42,6 +43,7 @@ class Gamemodes extends StatelessWidget {
                           builder: (context) => const GamePage(
                             gridLength: 3,
                             playerStrings: ["X", "O"],
+                            gameReward: 75,
                             displayEarliestPiece: true,
                           ),
                         ),
@@ -57,6 +59,7 @@ class Gamemodes extends StatelessWidget {
                           builder: (context) => const GamePage(
                             gridLength: 3,
                             playerStrings: ["X", "O"],
+                            gameReward: 150,
                             displayEarliestPiece: true,
                             blind: true,
                           ),
@@ -73,6 +76,7 @@ class Gamemodes extends StatelessWidget {
                           builder: (context) => const GamePage(
                             gridLength: 3,
                             playerStrings: ["X", "O"],
+                            gameReward: 30,
                             stepsPerTurn: 2,
                           ),
                         ),
@@ -88,6 +92,7 @@ class Gamemodes extends StatelessWidget {
                           builder: (context) => const GamePage(
                             gridLength: 3,
                             playerStrings: ["X", "O"],
+                            gameReward: 125,
                             stepsPerTurn: 2,
                             blind: true,
                           ),
@@ -104,6 +109,7 @@ class Gamemodes extends StatelessWidget {
                           builder: (context) => const GamePage(
                             gridLength: 7,
                             playerStrings: ["X", "O"],
+                            gameReward: 95,
                             stepsPerTurn: 2,
                           ),
                         ),
@@ -120,6 +126,7 @@ class Gamemodes extends StatelessWidget {
                             gridLength: 7,
                             playerStrings: ["X", "O"],
                             displayEarliestPiece: true,
+                            gameReward: 135,
                             blind: true,
                             stepsPerTurn: 2,
                           ),
@@ -137,6 +144,7 @@ class Gamemodes extends StatelessWidget {
                             gridLength: 9,
                             playerStrings: ["X", "O"],
                             displayEarliestPiece: true,
+                            gameReward: 155,
                             blind: true,
                             stepsPerTurn: 2,
                           ),

@@ -1,10 +1,12 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:tictactoe/utils/user_utils.dart';
 
 class GamePage extends StatefulWidget {
   final int gridLength;
   final List<String> playerStrings;
+  final int gameReward;
   final int? maxPieces;
   final int playingAs = 0;
   final bool? displayEarliestPiece;
@@ -14,6 +16,7 @@ class GamePage extends StatefulWidget {
     super.key,
     required this.gridLength,
     required this.playerStrings,
+    required this.gameReward,
     this.maxPieces,
     this.displayEarliestPiece,
     this.blind,
@@ -26,6 +29,7 @@ class GamePage extends StatefulWidget {
       _GamePageState(
         gridLength,
         playerStrings,
+        gameReward,
         playingAs,
         maxPieces,
         displayEarliestPiece,
@@ -35,8 +39,9 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> {
-  int squareLength;
+  final int squareLength;
   List<String> playerStrings = [];
+  final int gameReward;
 
   late final int maxPieces;
   late final int gridSize;
@@ -59,6 +64,7 @@ class _GamePageState extends State<GamePage> {
   _GamePageState(
     this.squareLength,
     this.playerStrings,
+    this.gameReward,
     this.playingAs,
     int? maxPieces,
     bool? displayEarliestPiece,
@@ -196,6 +202,61 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
+  void _update(int index, bool botOverride) {
+    if ((activeIndeces.contains(index) || turn != playingAs || ended) &&
+        !botOverride) {
+      gridCellKeys[index].currentState?._shake();
+      return;
+    }
+
+    setState(() {
+      boxStates[index] = turn;
+      _currentStep++;
+
+      if (_currentStep >= stepsPerTurn) {
+        turn++;
+        _currentStep = 0;
+      }
+      turn %= playerStrings.length;
+
+      if (piecesLeft() <= 0) {
+        boxStates[activeIndeces.removeAt(0)] = -1;
+      }
+      activeIndeces.add(index);
+
+      var winnerRecord = _checkWinner();
+
+      if (winnerRecord.winningPlayer != -1) {
+        _endGame();
+        calculateWin(winnerRecord);
+      }
+
+      // bot's turn
+      if (turn != playingAs && !ended) {
+        botTurn();
+      }
+    });
+  }
+
+  void calculateWin(WinnerRecord winnerRecord) {
+    for (int i = 0; i < winnerRecord.winningTiles.length; i++) {
+      gridCellKeys[winnerRecord.winningTiles[i]].currentState?._makeGreen();
+    }
+
+    // check if the player has won
+    if (winnerRecord.winningPlayer == playingAs) {
+      var userEmail = getCurrentUserEmail();
+
+      if (userEmail != null) {
+        incrementUserScore(userEmail, gameReward);
+      }
+
+      bottomText = "You Win!";
+    } else {
+      bottomText = "You Lost!";
+    }
+  }
+
   WinnerRecord _checkLine(int position, bool isRow) {
     int currPosition = isRow ? position * squareLength : position;
     int player = -1;
@@ -294,49 +355,6 @@ class _GamePageState extends State<GamePage> {
 
   int piecesLeft() {
     return maxPieces - activeIndeces.length;
-  }
-
-  void _update(int index, bool botOverride) {
-    if ((activeIndeces.contains(index) || turn != playingAs || ended) &&
-        !botOverride) {
-      gridCellKeys[index].currentState?._shake();
-      return;
-    }
-
-    setState(() {
-      boxStates[index] = turn;
-      _currentStep++;
-
-      if (_currentStep >= stepsPerTurn) {
-        turn++;
-        _currentStep = 0;
-      }
-      turn %= playerStrings.length;
-
-      if (piecesLeft() <= 0) {
-        boxStates[activeIndeces.removeAt(0)] = -1;
-      }
-      activeIndeces.add(index);
-
-      var winCheck = _checkWinner();
-
-      if (winCheck.winningPlayer != -1) {
-        _endGame();
-
-        for (int i = 0; i < winCheck.winningTiles.length; i++) {
-          gridCellKeys[winCheck.winningTiles[i]].currentState?._makeGreen();
-        }
-
-        bottomText = winCheck.winningPlayer == playingAs
-            ? "You Win!"
-            : "You Lost!";
-      }
-
-      // bot's turn
-      if (turn != playingAs && !ended) {
-        botTurn();
-      }
-    });
   }
 }
 

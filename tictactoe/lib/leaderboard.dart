@@ -8,7 +8,7 @@ class LeaderboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final leaderboard = FirebaseFirestore.instance
         .collection('leaderboard')
-        .where('isDummy', isEqualTo: false)
+        .where('hidden', isEqualTo: false)
         .orderBy('score', descending: true)
         .limit(100)
         .snapshots();
