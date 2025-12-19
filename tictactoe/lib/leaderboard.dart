@@ -8,8 +8,9 @@ class LeaderboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final leaderboard = FirebaseFirestore.instance
         .collection('leaderboard')
+        .where('isDummy', isEqualTo: false)
         .orderBy('score', descending: true)
-        .limit(10)
+        .limit(100)
         .snapshots();
 
     return Scaffold(
@@ -17,8 +18,12 @@ class LeaderboardPage extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: leaderboard,
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No users available'));
           }
 
           final docs = snapshot.data!.docs;
