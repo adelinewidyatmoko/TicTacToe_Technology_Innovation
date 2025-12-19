@@ -40,3 +40,11 @@ A hidden value of true hides the player from the leaderboard in the app
 - firebase_core
 - firebase_auth
 - cloud_firestore
+
+# Screenshots
+
+## Easy Mode
+![tic tac toe](/assets/img1.png)
+
+## Blind Mode
+![blind mode](/assets/img2.png)
